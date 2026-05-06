@@ -1,0 +1,18 @@
+- [ ] 项目初始化完成，Tailwind CSS 配置正确
+- [ ] Supabase 客户端配置完成
+- [ ] 所有数据库表创建成功（users, departments, schedules, shifts, checkins, approval_requests, approval_steps, announcements）
+- [ ] Edge Functions 部署成功（checkin, create_approval, approve_request, validate_location, import_schedule_excel）
+- [ ] 首页功能完整（用户卡片、快捷入口、今日班次、待审批、公告）
+- [ ] 审批模块完整（发起申请、审批列表、审批详情、状态流转）
+- [ ] 排班模块完整（我的排班、周视图、月视图、统计）
+- [ ] 打卡模块完整（GPS打卡、拍照打卡、状态展示）
+- [ ] 个人中心完整（个人信息、我的申请、设置）
+- [ ] 管理员排班管理完整（CRUD、Excel导入）
+- [ ] 前端部署到 Vercel 成功
+- [ ] 所有页面使用 App Router（/app 目录）
+- [ ] Server Components + Client Components 正确分离
+- [ ] 所有数据操作通过 Supabase client
+- [ ] 所有业务逻辑放在 Edge Functions
+- [ ] UI 使用 Tailwind CSS，无组件库
+- [ ] 卡片式设计（rounded-2xl + shadow-lg）
+- [ ] 移动端优先响应式设计
