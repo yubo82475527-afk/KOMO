@@ -8,23 +8,25 @@ export async function createClient() {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
+    console.error('Missing Supabase environment variables in server.ts')
     return {
       auth: {
-        getUser: () => Promise.resolve({ data: { user: null }, error: null }),
+        getUser: () => Promise.resolve({ data: { user: null }, error: new Error('Supabase not configured') }),
         getSession: () => Promise.resolve({ data: { session: null }, error: null }),
       },
       from: () => ({
-        select: () => Promise.resolve({ data: null, error: null }),
-        insert: () => Promise.resolve({ data: null, error: null }),
-        update: () => Promise.resolve({ data: null, error: null }),
-        delete: () => Promise.resolve({ data: null, error: null }),
+        select: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        insert: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        update: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
+        delete: () => Promise.resolve({ data: null, error: new Error('Supabase not configured') }),
         eq: function() { return this },
-        single: function() { return Promise.resolve({ data: null, error: null }) },
-        maybeSingle: function() { return Promise.resolve({ data: null, error: null }) },
+        single: function() { return Promise.resolve({ data: null, error: new Error('Supabase not configured') }) },
+        maybeSingle: function() { return Promise.resolve({ data: null, error: new Error('Supabase not configured') }) },
         order: function() { return this },
         limit: function() { return this },
         gte: function() { return this },
         lte: function() { return this },
+        in: function() { return this },
       }),
     } as any
   }
