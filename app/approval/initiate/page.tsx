@@ -1,9 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function InitiateApprovalPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     type: 'leave' as const,
     title: '',
@@ -50,7 +52,8 @@ export default function InitiateApprovalPage() {
       
       if (response.ok && result.success) {
         alert('申请提交成功')
-        window.location.href = '/approval'
+        router.push('/approval')
+        router.refresh()
       } else {
         alert('提交失败: ' + (result.error || '未知错误'))
         setSubmiting(false)
@@ -65,7 +68,8 @@ export default function InitiateApprovalPage() {
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
