@@ -1,75 +1,86 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/client'
 
-async function getMyRequests(userId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('approval_requests')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(5)
+export default function ApprovalPage() {
+  const [myRequests, setMyRequests] = useState<any[]>([])
+  const [pendingRequests, setPendingRequests] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  return data || []
-}
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
 
-async function getPendingRequests(userId: string) {
-  const supabase = await createClient()
-  const { data: steps, error } = await supabase
-    .from('approval_steps')
-    .select('request_id')
-    .eq('approver_id', userId)
-    .eq('status', 'pending')
+      const { data: myData } = await supabase
+        .from('approval_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      setMyRequests(myData || [])
 
-  if (!steps || steps.length === 0) return []
+      const { data: steps } = await supabase
+        .from('approval_steps')
+        .select('request_id')
+        .eq('approver_id', user.id)
+        .eq('status', 'pending')
 
-  const requestIds = steps.map(s => s.request_id)
-  const { data: requests } = await supabase
-    .from('approval_requests')
-    .select('*')
-    .in('id', requestIds)
+      if (steps && steps.length > 0) {
+        const requestIds = steps.map(s => s.request_id)
+        const { data: pendingData } = await supabase
+          .from('approval_requests')
+          .select('*')
+          .in('id', requestIds)
+        setPendingRequests(pendingData || [])
+      }
 
-  return requests || []
-}
+      setLoading(false)
+    }
 
-export default async function ApprovalPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return (
-      <div className="p-4">
-        <p className="text-gray-500 text-center">请先登录</p>
-      </div>
-    )
-  }
+    fetchData()
+  }, [])
 
-  const myRequests = await getMyRequests(user.id)
-  const pendingRequests = await getPendingRequests(user.id)
-
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-600',
     approved: 'bg-green-100 text-green-600',
     rejected: 'bg-red-100 text-red-600',
     cancelled: 'bg-gray-100 text-gray-600'
   }
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: '待审批',
     approved: '已通过',
     rejected: '已拒绝',
     cancelled: '已取消'
   }
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     leave: '请假',
     overtime: '加班',
     business_trip: '出差',
     other: '其他'
   }
 
+  if (loading) {
+    return (
+      <div className="p-4 pb-24">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-4 pb-24">
-      <header className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-bold">审批</h1>
         <Link href="/approval/initiate" className="btn btn-primary text-sm">
           发起申请
@@ -80,7 +91,7 @@ export default async function ApprovalPage() {
         <Link href="/approval/pending" className={`flex-shrink-0 btn ${pendingRequests.length > 0 ? 'btn-primary' : 'btn-secondary'}`}>
           待我审批 ({pendingRequests.length})
         </Link>
-        <Link href="/approval/initiated" className={`flex-shrink-0 btn ${pendingRequests.length === 0 ? 'btn-primary' : 'btn-secondary'}`}>
+        <Link href="/approval/initiated" className="flex-shrink-0 btn btn-secondary">
           我发起的 ({myRequests.length})
         </Link>
       </div>
@@ -89,23 +100,19 @@ export default async function ApprovalPage() {
         {pendingRequests.length > 0 && (
           <>
             <h2 className="font-semibold text-gray-700">待我审批</h2>
-            {pendingRequests.map((request) => (
-              <Link key={request.id} href={`/approval/${request.id}`} className="card block">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{request.title}</span>
-                      <span className={`status-badge ${statusColors[request.status as keyof typeof statusColors]}`}>
-                        {statusLabels[request.status as keyof typeof statusLabels]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {typeLabels[request.type as keyof typeof typeLabels]} · {request.start_date} 至 {request.end_date}
-                    </p>
+            {pendingRequests.slice(0, 3).map((request) => (
+              <Link key={request.id} href={`/approval/${request.id}`}>
+                <div className="card cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium">{request.title}</h3>
+                    <span className={`status-badge ${statusColors[request.status]}`}>
+                      {statusLabels[request.status]}
+                    </span>
                   </div>
-                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span>{typeLabels[request.type]}</span>
+                    <span>{request.start_date} ~ {request.end_date}</span>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -115,23 +122,19 @@ export default async function ApprovalPage() {
         {myRequests.length > 0 && (
           <>
             <h2 className="font-semibold text-gray-700 mt-4">我发起的</h2>
-            {myRequests.map((request) => (
-              <Link key={request.id} href={`/approval/${request.id}`} className="card block">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium">{request.title}</span>
-                      <span className={`status-badge ${statusColors[request.status as keyof typeof statusColors]}`}>
-                        {statusLabels[request.status as keyof typeof statusLabels]}
-                      </span>
-                    </div>
-                    <p className="text-sm text-gray-500">
-                      {typeLabels[request.type as keyof typeof typeLabels]} · {request.start_date} 至 {request.end_date}
-                    </p>
+            {myRequests.slice(0, 3).map((request) => (
+              <Link key={request.id} href={`/approval/${request.id}`}>
+                <div className="card cursor-pointer hover:bg-gray-50 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="font-medium">{request.title}</h3>
+                    <span className={`status-badge ${statusColors[request.status]}`}>
+                      {statusLabels[request.status]}
+                    </span>
                   </div>
-                  <svg className="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span>{typeLabels[request.type]}</span>
+                    <span>{request.start_date} ~ {request.end_date}</span>
+                  </div>
                 </div>
               </Link>
             ))}

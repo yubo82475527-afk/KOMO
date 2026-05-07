@@ -1,65 +1,76 @@
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
 import UserCard from '@/components/UserCard'
 import QuickActions from '@/components/QuickActions'
 import TodaySchedule from '@/components/TodaySchedule'
 import PendingApproval from '@/components/PendingApproval'
 import Announcements from '@/components/Announcements'
 
-async function getCurrentUser() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
+export default function Home() {
+  const [user, setUser] = useState<any>(null)
+  const [schedule, setSchedule] = useState<any>(null)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [announcements, setAnnouncements] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const { data, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
+  useEffect(() => {
+    const fetchData = async () => {
+      const supabase = createClient()
+      
+      const { data: { user: authUser } } = await supabase.auth.getUser()
+      if (!authUser) {
+        setLoading(false)
+        return
+      }
 
-  return data
-}
+      const { data: userData } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', authUser.id)
+        .single()
+      setUser(userData)
 
-async function getTodaySchedule(userId: string) {
-  const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
-  const { data, error } = await supabase
-    .from('schedules')
-    .select('*, shifts(*)')
-    .eq('user_id', userId)
-    .eq('date', today)
-    .single()
+      const today = new Date().toISOString().split('T')[0]
+      const { data: scheduleData } = await supabase
+        .from('schedules')
+        .select('*, shifts(*)')
+        .eq('user_id', authUser.id)
+        .eq('date', today)
+        .single()
+      setSchedule(scheduleData)
 
-  return data
-}
+      const { data: pendingData } = await supabase
+        .from('approval_requests')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .eq('status', 'pending')
+      setPendingCount(pendingData?.length || 0)
 
-async function getPendingApprovals(userId: string) {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('approval_requests')
-    .select('*')
-    .eq('user_id', userId)
-    .eq('status', 'pending')
+      const { data: announcementsData } = await supabase
+        .from('announcements')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false })
+        .limit(5)
+      setAnnouncements(announcementsData || [])
 
-  return data?.length || 0
-}
+      setLoading(false)
+    }
 
-async function getAnnouncements() {
-  const supabase = await createClient()
-  const { data, error } = await supabase
-    .from('announcements')
-    .select('*')
-    .eq('is_active', true)
-    .order('created_at', { ascending: false })
-    .limit(5)
+    fetchData()
+  }, [])
 
-  return data
-}
-
-export default async function Home() {
-  const user = await getCurrentUser()
-  const schedule = user ? await getTodaySchedule(user.id) : null
-  const pendingCount = user ? await getPendingApprovals(user.id) : 0
-  const announcements = await getAnnouncements() || []
+  if (loading) {
+    return (
+      <div className="p-4 pb-24">
+        <div className="flex items-center justify-center py-20">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 pb-24">
