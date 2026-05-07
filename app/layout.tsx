@@ -4,6 +4,8 @@ import { Inter } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { cookies } from 'next/headers'
 import BottomNav from '@/components/BottomNav'
+import zhMessages from '../messages/zh.json'
+import enMessages from '../messages/en.json'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -16,12 +18,9 @@ const locales = ['zh', 'en'] as const
 type Locale = typeof locales[number]
 const defaultLocale: Locale = 'zh'
 
-async function getMessages(locale: Locale) {
-  try {
-    return (await import(`../messages/${locale}.json`)).default
-  } catch {
-    return (await import(`../messages/zh.json`)).default
-  }
+const messages: Record<Locale, any> = {
+  zh: zhMessages,
+  en: enMessages
 }
 
 export default async function RootLayout({
@@ -36,13 +35,11 @@ export default async function RootLayout({
   if (!locale || !locales.includes(locale)) {
     locale = defaultLocale
   }
-  
-  const messages = await getMessages(locale)
 
   return (
     <html lang={locale}>
       <body className={`${inter.className} bg-gray-100 min-h-screen`}>
-        <NextIntlClientProvider messages={messages} locale={locale}>
+        <NextIntlClientProvider messages={messages[locale]} locale={locale}>
           <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
             {children}
             <BottomNav />
