@@ -24,35 +24,41 @@ export default function InitiateApprovalPage() {
     e.preventDefault()
     setSubmiting(true)
 
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setSubmiting(false)
-      return
-    }
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        alert('请先登录')
+        setSubmiting(false)
+        return
+      }
 
-    const response = await fetch('/api/approval', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: formData.type,
-        title: formData.title,
-        description: formData.description,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
-        user_id: user.id
+      const response = await fetch('/api/approval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: formData.type,
+          title: formData.title,
+          description: formData.description,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+          user_id: user.id
+        })
       })
-    })
 
-    const result = await response.json()
-    if (result.success) {
-      alert('申请提交成功')
-      window.location.href = '/approval'
-    } else {
-      alert('提交失败: ' + result.error)
+      const result = await response.json()
+      
+      if (response.ok && result.success) {
+        alert('申请提交成功')
+        window.location.href = '/approval'
+      } else {
+        alert('提交失败: ' + (result.error || '未知错误'))
+        setSubmiting(false)
+      }
+    } catch (err: any) {
+      alert('提交失败: ' + (err.message || '网络错误'))
+      setSubmiting(false)
     }
-
-    setSubmiting(false)
   }
 
   return (

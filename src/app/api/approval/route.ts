@@ -16,43 +16,47 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
 
-  const { data: flowData } = await supabase
-    .from('approval_flows')
-    .select(`
-      *,
-      approval_flow_steps(*)
-    `)
-    .eq('is_active', true)
-    .or(`request_type.eq.${type},request_type.eq.all`)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single()
-
   let approvers: { step_number: number; step_name: string; approver_id: string }[] = []
 
-  if (flowData && flowData.approval_flow_steps && flowData.approval_flow_steps.length > 0) {
-    for (const step of flowData.approval_flow_steps) {
-      if (step.approver_type === 'specific_user' && step.approver_id) {
-        approvers.push({
-          step_number: step.step_number,
-          step_name: step.step_name,
-          approver_id: step.approver_id
-        })
-      } else if (step.approver_type === 'admin') {
-        const { data: admins } = await supabase
-          .from('users')
-          .select('id')
-          .eq('is_admin', true)
-        
-        if (admins && admins.length > 0) {
+  try {
+    const { data: flowData } = await supabase
+      .from('approval_flows')
+      .select(`
+        *,
+        approval_flow_steps(*)
+      `)
+      .eq('is_active', true)
+      .or(`request_type.eq.${type},request_type.eq.all`)
+      .order('created_at', { ascending: true })
+      .limit(1)
+      .maybeSingle()
+
+    if (flowData && flowData.approval_flow_steps && flowData.approval_flow_steps.length > 0) {
+      for (const step of flowData.approval_flow_steps) {
+        if (step.approver_type === 'specific_user' && step.approver_id) {
           approvers.push({
             step_number: step.step_number,
             step_name: step.step_name,
-            approver_id: admins[0].id
+            approver_id: step.approver_id
           })
+        } else if (step.approver_type === 'admin') {
+          const { data: admins } = await supabase
+            .from('users')
+            .select('id')
+            .eq('is_admin', true)
+          
+          if (admins && admins.length > 0) {
+            approvers.push({
+              step_number: step.step_number,
+              step_name: step.step_name,
+              approver_id: admins[0].id
+            })
+          }
         }
       }
     }
+  } catch (e) {
+    console.log('Approval flows table not found, using default approvers')
   }
 
   if (approvers.length === 0) {
@@ -62,7 +66,7 @@ export async function POST(request: Request) {
       .eq('is_admin', true)
     
     if (!admins || admins.length === 0) {
-      return NextResponse.json({ error: 'No approvers found' }, { status: 400 })
+      return NextResponse.json({ error: '没有找到审批人，请先设置管理员' }, { status: 400 })
     }
     
     approvers = admins.map((admin, index) => ({
