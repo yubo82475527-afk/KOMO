@@ -26,22 +26,21 @@ export default function InitiateApprovalPage() {
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-
-    const { data: approvers } = await supabase
-      .from('users')
-      .select('id')
-      .eq('is_admin', true)
-
-    const approverIds = approvers?.map(a => a.id) || []
+    if (!user) {
+      setSubmiting(false)
+      return
+    }
 
     const response = await fetch('/api/approval', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        ...formData,
-        user_id: user.id,
-        approvers: approverIds
+        type: formData.type,
+        title: formData.title,
+        description: formData.description,
+        start_date: formData.start_date,
+        end_date: formData.end_date,
+        user_id: user.id
       })
     })
 

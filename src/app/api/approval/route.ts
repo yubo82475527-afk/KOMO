@@ -3,24 +3,107 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await request.json()
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const { type, title, description, start_date, end_date, user_id } = body
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/create_approval`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`
-    },
-    body: JSON.stringify(body)
-  })
+  if (!user_id || !type || !title || !start_date || !end_date) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
 
-  const data = await response.json()
-  return NextResponse.json(data, { status: response.status })
+  const { data: flowData } = await supabase
+    .from('approval_flows')
+    .select(`
+      *,
+      approval_flow_steps(*)
+    `)
+    .eq('is_active', true)
+    .or(`request_type.eq.${type},request_type.eq.all`)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .single()
+
+  let approvers: { step_number: number; step_name: string; approver_id: string }[] = []
+
+  if (flowData && flowData.approval_flow_steps && flowData.approval_flow_steps.length > 0) {
+    for (const step of flowData.approval_flow_steps) {
+      if (step.approver_type === 'specific_user' && step.approver_id) {
+        approvers.push({
+          step_number: step.step_number,
+          step_name: step.step_name,
+          approver_id: step.approver_id
+        })
+      } else if (step.approver_type === 'admin') {
+        const { data: admins } = await supabase
+          .from('users')
+          .select('id')
+          .eq('is_admin', true)
+        
+        if (admins && admins.length > 0) {
+          approvers.push({
+            step_number: step.step_number,
+            step_name: step.step_name,
+            approver_id: admins[0].id
+          })
+        }
+      }
+    }
+  }
+
+  if (approvers.length === 0) {
+    const { data: admins } = await supabase
+      .from('users')
+      .select('id')
+      .eq('is_admin', true)
+    
+    if (!admins || admins.length === 0) {
+      return NextResponse.json({ error: 'No approvers found' }, { status: 400 })
+    }
+    
+    approvers = admins.map((admin, index) => ({
+      step_number: index + 1,
+      step_name: `审批步骤 ${index + 1}`,
+      approver_id: admin.id
+    }))
+  }
+
+  const { data: requestData, error: requestError } = await supabase
+    .from('approval_requests')
+    .insert({
+      user_id,
+      type,
+      title,
+      description,
+      start_date,
+      end_date,
+      status: 'pending'
+    })
+    .select()
+    .single()
+
+  if (requestError) {
+    return NextResponse.json({ error: requestError.message }, { status: 500 })
+  }
+
+  const stepsToInsert = approvers.map(a => ({
+    request_id: requestData.id,
+    step_number: a.step_number,
+    approver_id: a.approver_id,
+    status: 'pending'
+  }))
+
+  const { error: stepsError } = await supabase
+    .from('approval_steps')
+    .insert(stepsToInsert)
+
+  if (stepsError) {
+    return NextResponse.json({ error: stepsError.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true, data: requestData })
 }

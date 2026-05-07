@@ -119,7 +119,7 @@ export default function ProfilePage() {
       <header className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-bold">我的</h1>
         {userData?.is_admin && (
-          <Link href="/admin/schedule/list" className="btn btn-secondary text-sm">
+          <Link href="/admin" className="btn btn-secondary text-sm">
             管理后台
           </Link>
         )}
