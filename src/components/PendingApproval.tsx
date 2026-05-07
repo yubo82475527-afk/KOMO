@@ -5,6 +5,8 @@ interface PendingApprovalProps {
 }
 
 export default function PendingApproval({ count }: PendingApprovalProps) {
+  if (count === 0) return null
+  
   return (
     <Link href="/approval/pending">
       <div className="card cursor-pointer hover:bg-gray-50 transition-colors">
@@ -21,11 +23,9 @@ export default function PendingApproval({ count }: PendingApprovalProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {count > 0 && (
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] text-center">
-                {count}
-              </span>
-            )}
+            <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] text-center">
+              {count}
+            </span>
             <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>

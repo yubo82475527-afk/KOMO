@@ -3,24 +3,55 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: Request) {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session) {
+  if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await request.json()
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const { type, latitude, longitude, photo_url } = body
 
-  const response = await fetch(`${supabaseUrl}/functions/v1/checkin`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${session.access_token}`
-    },
-    body: JSON.stringify(body)
-  })
+  if (!type || !['checkin', 'checkout'].includes(type)) {
+    return NextResponse.json({ error: 'Invalid type' }, { status: 400 })
+  }
 
-  const data = await response.json()
-  return NextResponse.json(data, { status: response.status })
+  const now = new Date()
+  const hour = now.getHours()
+  const minute = now.getMinutes()
+  const timeInMinutes = hour * 60 + minute
+
+  let status = 'valid'
+  const workStartTime = 9 * 60
+  const workEndTime = 18 * 60
+
+  if (type === 'checkin') {
+    if (timeInMinutes > workStartTime + 15) {
+      status = 'late'
+    }
+  } else {
+    if (timeInMinutes < workEndTime - 15) {
+      status = 'early'
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('checkins')
+    .insert({
+      user_id: user.id,
+      type,
+      timestamp: now.toISOString(),
+      latitude,
+      longitude,
+      photo_url,
+      status
+    })
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json({ success: true, data })
 }
