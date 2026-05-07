@@ -1,6 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { locales, defaultLocale, type Locale } from './src/i18n/request'
+import { locales, defaultLocale, type Locale } from './src/i18n'
 
 export async function middleware(request: NextRequest) {
   const localeCookie = request.cookies.get('locale')?.value as Locale | undefined
