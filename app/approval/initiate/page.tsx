@@ -4,10 +4,12 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
+type ApprovalType = 'leave' | 'overtime' | 'business_trip' | 'other'
+
 export default function InitiateApprovalPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
-    type: 'leave' as const,
+    type: 'leave' as ApprovalType,
     title: '',
     description: '',
     start_date: '',
@@ -87,7 +89,7 @@ export default function InitiateApprovalPage() {
               <button
                 key={type.value}
                 type="button"
-                onClick={() => setFormData({ ...formData, type: type.value as const })}
+                onClick={() => setFormData({ ...formData, type: type.value as ApprovalType })}
                 className={`py-2 rounded-xl text-sm font-medium transition-colors ${
                   formData.type === type.value
                     ? 'bg-blue-500 text-white'

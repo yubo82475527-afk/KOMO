@@ -4,6 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+interface ApprovalStep {
+  request_id: string
+}
+
 export default function ApprovalPage() {
   const [myRequests, setMyRequests] = useState<any[]>([])
   const [pendingRequests, setPendingRequests] = useState<any[]>([])
@@ -33,7 +37,7 @@ export default function ApprovalPage() {
         .eq('status', 'pending')
 
       if (steps && steps.length > 0) {
-        const requestIds = steps.map(s => s.request_id)
+        const requestIds = (steps as ApprovalStep[]).map((s) => s.request_id)
         const { data: pendingData } = await supabase
           .from('approval_requests')
           .select('*')

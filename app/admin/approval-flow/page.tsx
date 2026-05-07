@@ -24,6 +24,10 @@ interface ApprovalFlowStep {
   approver?: { name: string }
 }
 
+interface ApprovalFlowWithSteps extends ApprovalFlow {
+  approval_flow_steps: ApprovalFlowStep[]
+}
+
 interface User {
   id: string
   name: string
@@ -74,9 +78,9 @@ export default function ApprovalFlowPage() {
       .order('created_at', { ascending: false })
     
     if (flowsData) {
-      setFlows(flowsData.map(f => ({
+      setFlows((flowsData as ApprovalFlowWithSteps[]).map((f) => ({
         ...f,
-        steps: f.approval_flow_steps?.sort((a: any, b: any) => a.step_number - b.step_number)
+        steps: f.approval_flow_steps?.sort((a, b) => a.step_number - b.step_number)
       })))
     }
 

@@ -5,6 +5,10 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
+interface ApprovalStep {
+  request_id: string
+}
+
 export default function PendingApprovalPage() {
   const router = useRouter()
   const [requests, setRequests] = useState<any[]>([])
@@ -25,7 +29,7 @@ export default function PendingApprovalPage() {
         .eq('approver_id', user.id)
         .eq('status', 'pending')
 
-      const requestIds = steps?.map(s => s.request_id) || []
+      const requestIds = (steps as ApprovalStep[])?.map((s) => s.request_id) || []
       if (requestIds.length > 0) {
         const { data } = await supabase
           .from('approval_requests')
