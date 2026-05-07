@@ -93,6 +93,15 @@ export default function CheckinPage() {
         })
       })
 
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response:', text.substring(0, 500))
+        alert('服务器返回了无效响应，请检查 Supabase 环境变量配置')
+        setIsChecking(false)
+        return
+      }
+
       const result = await response.json()
       if (result.success) {
         alert(type === 'checkin' ? '打卡成功' : '签退成功')
@@ -102,6 +111,7 @@ export default function CheckinPage() {
         alert('操作失败: ' + (result.error || '未知错误'))
       }
     } catch (err) {
+      console.error('Checkin error:', err)
       alert('操作失败，请重试')
     } finally {
       setIsChecking(false)

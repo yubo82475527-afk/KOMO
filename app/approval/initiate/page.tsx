@@ -43,6 +43,15 @@ export default function InitiateApprovalPage() {
         })
       })
 
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response:', text.substring(0, 500))
+        alert('服务器返回了无效响应，请检查 Supabase 环境变量配置')
+        setSubmiting(false)
+        return
+      }
+
       const result = await response.json()
       
       if (response.ok && result.success) {
@@ -54,6 +63,7 @@ export default function InitiateApprovalPage() {
         setSubmiting(false)
       }
     } catch (err: any) {
+      console.error('Submit error:', err)
       alert('提交失败: ' + (err.message || '网络错误'))
       setSubmiting(false)
     }
