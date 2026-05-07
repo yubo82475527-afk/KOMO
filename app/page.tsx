@@ -57,6 +57,9 @@ export default async function Home() {
   const pendingCount = user ? await getPendingApprovals(user.id) : 0
   const announcements = await getAnnouncements() || []
   
+  console.log('Supabase URL configured:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Yes' : 'No')
+  console.log('Current user:', user)
+  
   return (
     <div className="p-4 pb-24">
       <header className="flex items-center justify-between mb-4">
