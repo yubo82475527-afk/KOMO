@@ -1,13 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import createIntlMiddleware from 'next-intl/middleware'
 import { locales, defaultLocale, type Locale } from './src/i18n/request'
-
-const intlMiddleware = createIntlMiddleware({
-  locales,
-  defaultLocale,
-  localePrefix: 'never'
-})
 
 export async function middleware(request: NextRequest) {
   const localeCookie = request.cookies.get('locale')?.value as Locale | undefined
@@ -64,16 +57,11 @@ export async function middleware(request: NextRequest) {
 
   supabaseResponse.cookies.set('locale', locale)
   
-  const pathIsApi = request.nextUrl.pathname.startsWith('/api')
-  if (pathIsApi) {
-    return supabaseResponse
-  }
-  
-  return intlMiddleware(request)
+  return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
