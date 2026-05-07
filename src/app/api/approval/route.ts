@@ -71,7 +71,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: '没有找到审批人，请先设置管理员' }, { status: 400 })
       }
       
-      approvers = admins.map((admin, index) => ({
+      approvers = admins.map((admin: { id: string }, index: number) => ({
         step_number: index + 1,
         step_name: `审批步骤 ${index + 1}`,
         approver_id: admin.id
