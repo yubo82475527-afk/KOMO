@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 interface CheckinRecord {
   id: string
@@ -11,6 +11,7 @@ interface CheckinRecord {
 }
 
 export default function CheckinPage() {
+  const supabase = createClient()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [checkinStatus, setCheckinStatus] = useState<'not_checkin' | 'checked_in' | 'checked_out'>('not_checkin')
   const [todayCheckins, setTodayCheckins] = useState<CheckinRecord[]>([])

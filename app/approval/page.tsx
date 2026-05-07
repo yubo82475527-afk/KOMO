@@ -1,36 +1,39 @@
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 
 async function getMyRequests(userId: string) {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('approval_requests')
     .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(5)
-  
+
   return data || []
 }
 
 async function getPendingRequests(userId: string) {
+  const supabase = await createClient()
   const { data: steps, error } = await supabase
     .from('approval_steps')
     .select('request_id')
     .eq('approver_id', userId)
     .eq('status', 'pending')
-  
+
   if (!steps || steps.length === 0) return []
-  
+
   const requestIds = steps.map(s => s.request_id)
   const { data: requests } = await supabase
     .from('approval_requests')
     .select('*')
     .in('id', requestIds)
-  
+
   return requests || []
 }
 
 export default async function ApprovalPage() {
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     return (
@@ -39,24 +42,24 @@ export default async function ApprovalPage() {
       </div>
     )
   }
-  
+
   const myRequests = await getMyRequests(user.id)
   const pendingRequests = await getPendingRequests(user.id)
-  
+
   const statusColors = {
     pending: 'bg-yellow-100 text-yellow-600',
     approved: 'bg-green-100 text-green-600',
     rejected: 'bg-red-100 text-red-600',
     cancelled: 'bg-gray-100 text-gray-600'
   }
-  
+
   const statusLabels = {
     pending: '待审批',
     approved: '已通过',
     rejected: '已拒绝',
     cancelled: '已取消'
   }
-  
+
   const typeLabels = {
     leave: '请假',
     overtime: '加班',
@@ -72,7 +75,7 @@ export default async function ApprovalPage() {
           发起申请
         </Link>
       </header>
-      
+
       <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
         <Link href="/approval/pending" className={`flex-shrink-0 btn ${pendingRequests.length > 0 ? 'btn-primary' : 'btn-secondary'}`}>
           待我审批 ({pendingRequests.length})
@@ -81,7 +84,7 @@ export default async function ApprovalPage() {
           我发起的 ({myRequests.length})
         </Link>
       </div>
-      
+
       <div className="space-y-4">
         {pendingRequests.length > 0 && (
           <>
@@ -108,7 +111,7 @@ export default async function ApprovalPage() {
             ))}
           </>
         )}
-        
+
         {myRequests.length > 0 && (
           <>
             <h2 className="font-semibold text-gray-700 mt-4">我发起的</h2>
@@ -134,7 +137,7 @@ export default async function ApprovalPage() {
             ))}
           </>
         )}
-        
+
         {pendingRequests.length === 0 && myRequests.length === 0 && (
           <div className="card text-center py-12">
             <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

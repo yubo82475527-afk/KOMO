@@ -1,41 +1,78 @@
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+'use client'
 
-export default async function MySchedulePage() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return (
-      <div className="p-4">
-        <p className="text-gray-500 text-center">请先登录</p>
-      </div>
-    )
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+
+interface Schedule {
+  id: string
+  user_id: string
+  shift_id: string
+  date: string
+  shifts: {
+    id: string
+    name: string
+    color: string
+    start_time: string
+    end_time: string
   }
-  
+}
+
+export default function MySchedulePage() {
+  const [weekOffset, setWeekOffset] = useState(0)
+  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const [loading, setLoading] = useState(true)
+
   const today = new Date()
   const startOfWeek = new Date(today)
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1)
-  
+  startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7)
+
   const weekDays = []
   for (let i = 0; i < 7; i++) {
     const date = new Date(startOfWeek)
     date.setDate(startOfWeek.getDate() + i)
     weekDays.push(date)
   }
-  
+
   const dates = weekDays.map(d => d.toISOString().split('T')[0])
-  
-  const { data: schedules } = await supabase
-    .from('schedules')
-    .select('*, shifts(*)')
-    .eq('user_id', user.id)
-    .in('date', dates)
-  
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      const { data } = await supabase
+        .from('schedules')
+        .select('*, shifts(*)')
+        .eq('user_id', user.id)
+        .in('date', dates)
+
+      setSchedules(data || [])
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [weekOffset])
+
   const scheduleMap = new Map()
   schedules?.forEach(s => {
     scheduleMap.set(s.date, s)
   })
-  
+
   const weekDayNames = ['一', '二', '三', '四', '五', '六', '日']
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <p className="text-gray-500 text-center">加载中...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="p-4 pb-24">
@@ -46,31 +83,31 @@ export default async function MySchedulePage() {
           <Link href="/schedule/stats" className="btn btn-secondary text-sm">统计</Link>
         </div>
       </header>
-      
+
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm text-gray-500">
             {startOfWeek.getMonth() + 1}月{startOfWeek.getDate()}日 - {weekDays[6].getMonth() + 1}月{weekDays[6].getDate()}日
           </span>
           <div className="flex gap-1">
-            <button className="icon-btn bg-gray-100">
+            <button className="icon-btn bg-gray-100" onClick={() => setWeekOffset(prev => prev - 1)}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <button className="icon-btn bg-gray-100">
+            <button className="icon-btn bg-gray-100" onClick={() => setWeekOffset(prev => prev + 1)}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
             </button>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-7 gap-1">
           {weekDays.map((day, index) => {
             const isToday = day.toDateString() === today.toDateString()
             const schedule = scheduleMap.get(day.toISOString().split('T')[0])
-            
+
             return (
               <div key={index} className="flex flex-col items-center">
                 <span className={`text-xs mb-1 ${
@@ -82,7 +119,7 @@ export default async function MySchedulePage() {
                   {day.getDate()}
                 </div>
                 {schedule && (
-                  <div 
+                  <div
                     className="w-8 h-1.5 rounded-full mt-1"
                     style={{ backgroundColor: schedule.shifts.color }}
                   />
@@ -92,14 +129,14 @@ export default async function MySchedulePage() {
           })}
         </div>
       </div>
-      
+
       <div className="card">
         <h3 className="font-semibold mb-3">班次详情</h3>
         <div className="space-y-3">
           {weekDays.map((day) => {
             const schedule = scheduleMap.get(day.toISOString().split('T')[0])
             const isToday = day.toDateString() === today.toDateString()
-            
+
             return (
               <div key={day.toISOString()} className={`flex items-center justify-between p-2 rounded-xl ${
                 isToday ? 'bg-blue-50' : ''
@@ -112,7 +149,7 @@ export default async function MySchedulePage() {
                   </span>
                   {schedule ? (
                     <>
-                      <div 
+                      <div
                         className="w-2 h-6 rounded-full"
                         style={{ backgroundColor: schedule.shifts.color }}
                       />

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const router = useRouter()
+  const supabase = createClient()
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,7 +25,8 @@ export default function LoginPage() {
           password,
         })
         if (signUpError) throw signUpError
-        alert('注册成功！请查收邮件验证您的账号。')
+        router.push('/')
+        router.refresh()
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({
           email,
@@ -32,6 +34,7 @@ export default function LoginPage() {
         })
         if (signInError) throw signInError
         router.push('/')
+        router.refresh()
       }
     } catch (err: any) {
       setError(err.message)

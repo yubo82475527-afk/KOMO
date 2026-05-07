@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 interface Schedule {
   id: string
@@ -19,15 +19,15 @@ interface Schedule {
 export default function ScheduleCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [schedules, setSchedules] = useState<Schedule[]>([])
-  
+
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
-  
+
   const firstDay = new Date(year, month, 1)
   const lastDay = new Date(year, month + 1, 0)
   const daysInMonth = lastDay.getDate()
   const startDay = firstDay.getDay()
-  
+
   const dates = []
   for (let i = 0; i < startDay; i++) {
     dates.push(null)
@@ -35,54 +35,55 @@ export default function ScheduleCalendarPage() {
   for (let i = 1; i <= daysInMonth; i++) {
     dates.push(new Date(year, month, i))
   }
-  
+
   const prevMonth = () => {
     const newDate = new Date(year, month - 1, 1)
     setCurrentDate(newDate)
   }
-  
+
   const nextMonth = () => {
     const newDate = new Date(year, month + 1, 1)
     setCurrentDate(newDate)
   }
-  
+
   useEffect(() => {
     const fetchSchedules = async () => {
+      const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      
+
       const startDate = new Date(year, month, 1).toISOString().split('T')[0]
       const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0]
-      
+
       const { data } = await supabase
         .from('schedules')
         .select('*, shifts(*)')
         .eq('user_id', user.id)
         .gte('date', startDate)
         .lte('date', endDate)
-      
+
       setSchedules(data || [])
     }
-    
+
     fetchSchedules()
   }, [year, month])
-  
+
   const scheduleMap = new Map()
   schedules.forEach(s => {
     scheduleMap.set(s.date, s)
   })
-  
+
   const today = new Date()
   const isToday = (date: Date) => {
     return date.toDateString() === today.toDateString()
   }
-  
+
   const weekDayNames = ['日', '一', '二', '三', '四', '五', '六']
 
   return (
     <div className="p-4 pb-24">
       <header className="flex items-center justify-between mb-6">
-        <button 
+        <button
           onClick={() => window.history.back()}
           className="icon-btn bg-gray-100"
         >
@@ -93,7 +94,7 @@ export default function ScheduleCalendarPage() {
         <h1 className="text-xl font-bold">排班日历</h1>
         <div className="w-10" />
       </header>
-      
+
       <div className="card">
         <div className="flex items-center justify-between mb-4">
           <button onClick={prevMonth} className="icon-btn bg-gray-100">
@@ -110,7 +111,7 @@ export default function ScheduleCalendarPage() {
             </svg>
           </button>
         </div>
-        
+
         <div className="grid grid-cols-7 gap-1 mb-2">
           {weekDayNames.map((day) => (
             <div key={day} className="text-center text-xs text-gray-500 py-2">
@@ -118,17 +119,17 @@ export default function ScheduleCalendarPage() {
             </div>
           ))}
         </div>
-        
+
         <div className="grid grid-cols-7 gap-1">
           {dates.map((date, index) => {
             if (!date) return <div key={index} />
-            
+
             const dateStr = date.toISOString().split('T')[0]
             const schedule = scheduleMap.get(dateStr)
-            
+
             return (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`aspect-square flex flex-col items-center justify-center rounded-xl relative ${
                   isToday(date) ? 'ring-2 ring-blue-500' : ''
                 }`}
@@ -139,7 +140,7 @@ export default function ScheduleCalendarPage() {
                   {date.getDate()}
                 </span>
                 {schedule && (
-                  <div 
+                  <div
                     className="absolute bottom-1 w-6 h-1 rounded-full"
                     style={{ backgroundColor: schedule.shifts.color }}
                   />
@@ -149,7 +150,7 @@ export default function ScheduleCalendarPage() {
           })}
         </div>
       </div>
-      
+
       <div className="card mt-4">
         <h3 className="font-semibold mb-3">班次图例</h3>
         <div className="flex flex-wrap gap-4">

@@ -1,3 +1,5 @@
+'use client'
+
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -56,6 +58,8 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname()
+
+  if (pathname === '/login') return null
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 max-w-md mx-auto z-50">

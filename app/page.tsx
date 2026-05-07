@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import UserCard from '@/components/UserCard'
 import QuickActions from '@/components/QuickActions'
 import TodaySchedule from '@/components/TodaySchedule'
@@ -6,19 +6,21 @@ import PendingApproval from '@/components/PendingApproval'
 import Announcements from '@/components/Announcements'
 
 async function getCurrentUser() {
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
-  
+
   const { data, error } = await supabase
     .from('users')
     .select('*')
     .eq('id', user.id)
     .single()
-  
+
   return data
 }
 
 async function getTodaySchedule(userId: string) {
+  const supabase = await createClient()
   const today = new Date().toISOString().split('T')[0]
   const { data, error } = await supabase
     .from('schedules')
@@ -26,28 +28,30 @@ async function getTodaySchedule(userId: string) {
     .eq('user_id', userId)
     .eq('date', today)
     .single()
-  
+
   return data
 }
 
 async function getPendingApprovals(userId: string) {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('approval_requests')
     .select('*')
     .eq('user_id', userId)
     .eq('status', 'pending')
-  
+
   return data?.length || 0
 }
 
 async function getAnnouncements() {
+  const supabase = await createClient()
   const { data, error } = await supabase
     .from('announcements')
     .select('*')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
     .limit(5)
-  
+
   return data
 }
 
@@ -56,10 +60,7 @@ export default async function Home() {
   const schedule = user ? await getTodaySchedule(user.id) : null
   const pendingCount = user ? await getPendingApprovals(user.id) : 0
   const announcements = await getAnnouncements() || []
-  
-  console.log('Supabase URL configured:', process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Yes' : 'No')
-  console.log('Current user:', user)
-  
+
   return (
     <div className="p-4 pb-24">
       <header className="flex items-center justify-between mb-4">
@@ -70,15 +71,15 @@ export default async function Home() {
           </svg>
         </div>
       </header>
-      
+
       <UserCard user={user} />
-      
+
       <QuickActions />
-      
+
       <TodaySchedule schedule={schedule} />
-      
+
       <PendingApproval count={pendingCount} />
-      
+
       <Announcements announcements={announcements} />
     </div>
   )

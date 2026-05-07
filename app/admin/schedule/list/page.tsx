@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 
 interface User {
@@ -11,6 +11,7 @@ interface User {
 }
 
 export default function AdminScheduleListPage() {
+  const supabase = createClient()
   const [users, setUsers] = useState<User[]>([])
   const [selectedUser, setSelectedUser] = useState<string | null>(null)
   const [schedules, setSchedules] = useState<any[]>([])

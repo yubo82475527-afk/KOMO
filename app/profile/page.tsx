@@ -1,28 +1,51 @@
-import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
+'use client'
 
-export default async function ProfilePage() {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return (
-      <div className="p-4">
-        <p className="text-gray-500 text-center">请先登录</p>
-      </div>
-    )
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+
+export default function ProfilePage() {
+  const supabase = createClient()
+  const router = useRouter()
+  const [userData, setUserData] = useState<any>(null)
+  const [myRequests, setMyRequests] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        setLoading(false)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single()
+      setUserData(profile)
+
+      const { data: requests } = await supabase
+        .from('approval_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3)
+      setMyRequests(requests || [])
+
+      setLoading(false)
+    }
+
+    fetchData()
+  }, [])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
   }
-  
-  const { data: userData } = await supabase
-    .from('users')
-    .select('*')
-    .eq('id', user.id)
-    .single()
-  
-  const { data: myRequests } = await supabase
-    .from('approval_requests')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: false })
-    .limit(3)
 
   const menuItems = [
     {
@@ -67,12 +90,28 @@ export default async function ProfilePage() {
       href: '/settings'
     }
   ]
-  
+
   const statusLabels = {
     pending: '待审批',
     approved: '已通过',
     rejected: '已拒绝',
     cancelled: '已取消'
+  }
+
+  if (loading) {
+    return (
+      <div className="p-4">
+        <p className="text-gray-500 text-center">加载中...</p>
+      </div>
+    )
+  }
+
+  if (!userData) {
+    return (
+      <div className="p-4">
+        <p className="text-gray-500 text-center">请先登录</p>
+      </div>
+    )
   }
 
   return (
@@ -85,7 +124,7 @@ export default async function ProfilePage() {
           </Link>
         )}
       </header>
-      
+
       <div className="card">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
@@ -106,7 +145,7 @@ export default async function ProfilePage() {
           </div>
         </div>
       </div>
-      
+
       <div className="card">
         <div className="grid grid-cols-4 gap-4">
           {menuItems.map((item) => (
@@ -123,13 +162,13 @@ export default async function ProfilePage() {
           ))}
         </div>
       </div>
-      
+
       <div className="card">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-semibold">最近申请</h3>
           <Link href="/approval/initiated" className="text-sm text-blue-500">查看全部</Link>
         </div>
-        
+
         {myRequests && myRequests.length > 0 ? (
           <div className="space-y-3">
             {myRequests.map((request) => (
@@ -156,9 +195,9 @@ export default async function ProfilePage() {
           </div>
         )}
       </div>
-      
+
       <div className="card mt-4">
-        <button className="w-full flex items-center justify-between text-red-500">
+        <button onClick={handleLogout} className="w-full flex items-center justify-between text-red-500">
           <span>退出登录</span>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />

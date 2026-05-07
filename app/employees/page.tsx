@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 
 export default function EmployeesPage() {
+  const supabase = createClient()
   const [employees, setEmployees] = useState<any[]>([])
   
   useEffect(() => {

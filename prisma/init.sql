@@ -151,30 +151,58 @@ ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE departments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shifts ENABLE ROW LEVEL SECURITY;
 
--- users 表策略：用户只能查看和修改自己的信息
-CREATE POLICY "Users can view their own data" ON users
-  FOR SELECT USING (auth.uid() = id);
+-- users 表策略：认证用户可以查看所有用户信息（admin页面和审批需要）
+CREATE POLICY "Authenticated users can view all users" ON users
+  FOR SELECT USING (auth.uid() IS NOT NULL);
 
 CREATE POLICY "Users can update their own data" ON users
   FOR UPDATE USING (auth.uid() = id);
 
--- schedules 表策略
-CREATE POLICY "Users can view their own schedules" ON schedules
-  FOR SELECT USING (auth.uid() = user_id);
+-- departments 表策略：认证用户可以查看部门
+CREATE POLICY "Authenticated users can view departments" ON departments
+  FOR SELECT USING (auth.uid() IS NOT NULL);
 
--- checkins 表策略
+-- schedules 表策略：用户可查看自己的排班，管理员可查看所有排班
+CREATE POLICY "Admins can view all schedules" ON schedules
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.is_admin = true)
+  );
+
+-- checkins 表策略：用户可查看自己的打卡，管理员可查看所有打卡
 CREATE POLICY "Users can view their own checkins" ON checkins
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (SELECT 1 FROM users WHERE users.id = auth.uid() AND users.is_admin = true)
+  );
 
 CREATE POLICY "Users can create their own checkins" ON checkins
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- approval_requests 表策略
-CREATE POLICY "Users can view their own requests" ON approval_requests
-  FOR SELECT USING (auth.uid() = user_id);
+-- approval_requests 表策略：用户可查看自己的请求和需要审批的请求
+CREATE POLICY "Users can view relevant requests" ON approval_requests
+  FOR SELECT USING (
+    user_id = auth.uid() OR
+    EXISTS (SELECT 1 FROM approval_steps WHERE approval_steps.request_id = approval_requests.id AND approval_steps.approver_id = auth.uid())
+  );
 
 CREATE POLICY "Users can create their own requests" ON approval_requests
   FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- approval_steps 表策略
+CREATE POLICY "Users can view steps for their requests" ON approval_steps
+  FOR SELECT USING (
+    EXISTS (SELECT 1 FROM approval_requests WHERE approval_requests.id = approval_steps.request_id AND approval_requests.user_id = auth.uid())
+    OR approver_id = auth.uid()
+  );
+
+CREATE POLICY "Users can create steps for their requests" ON approval_steps
+  FOR INSERT WITH CHECK (
+    EXISTS (SELECT 1 FROM approval_requests WHERE approval_requests.id = approval_steps.request_id AND approval_requests.user_id = auth.uid())
+  );
+
+CREATE POLICY "Approvers can update their steps" ON approval_steps
+  FOR UPDATE USING (approver_id = auth.uid());
 
 -- announcements 表策略：所有人可以查看活跃公告
 CREATE POLICY "Anyone can view active announcements" ON announcements
