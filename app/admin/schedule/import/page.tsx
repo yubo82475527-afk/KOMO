@@ -1,8 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function AdminScheduleImportPage() {
+  const router = useRouter()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<{ success: boolean; imported: number; errors: any[] } | null>(null)
@@ -38,7 +40,8 @@ export default function AdminScheduleImportPage() {
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button 
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

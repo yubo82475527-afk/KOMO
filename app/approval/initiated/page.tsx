@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function InitiatedApprovalPage() {
+  const router = useRouter()
   const [requests, setRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -65,7 +67,8 @@ export default function InitiatedApprovalPage() {
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

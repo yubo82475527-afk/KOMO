@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 export default function EmployeesPage() {
+  const router = useRouter()
   const supabase = createClient()
   const [employees, setEmployees] = useState<any[]>([])
   
@@ -23,7 +25,8 @@ export default function EmployeesPage() {
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button 
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

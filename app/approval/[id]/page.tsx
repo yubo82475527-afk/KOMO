@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { use, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 interface ApprovalRequest {
   id: string
   type: string
   title: string
-  description: string
+  description: string | null
   start_date: string
   end_date: string
   status: string
@@ -21,51 +22,57 @@ interface ApprovalStep {
   approver_id: string
   step_number: number
   status: string
-  comment: string
-  approved_at: string
+  comment: string | null
+  approved_at: string | null
   users?: {
     name: string
-  }
+  } | null
 }
 
-export default function ApprovalDetailPage({ params }: { params: { id: string } }) {
+export default function ApprovalDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params)
+  const router = useRouter()
   const [request, setRequest] = useState<ApprovalRequest | null>(null)
   const [steps, setSteps] = useState<ApprovalStep[]>([])
   const [currentUserId, setCurrentUserId] = useState('')
   const [comment, setComment] = useState('')
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
       const supabase = createClient()
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        setLoading(false)
+        return
+      }
       setCurrentUserId(user.id)
 
       const { data: requestData } = await supabase
         .from('approval_requests')
         .select('*')
-        .eq('id', params.id)
+        .eq('id', resolvedParams.id)
         .single()
       setRequest(requestData)
 
       const { data: stepsData } = await supabase
         .from('approval_steps')
         .select('*, users(name)')
-        .eq('request_id', params.id)
+        .eq('request_id', resolvedParams.id)
         .order('step_number')
       setSteps(stepsData || [])
+      setLoading(false)
     }
 
     fetchData()
-  }, [params.id])
+  }, [resolvedParams.id])
 
   const handleApprove = async (action: 'approved' | 'rejected') => {
     const response = await fetch('/api/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        request_id: params.id,
-        approver_id: currentUserId,
+        request_id: resolvedParams.id,
         action,
         comment
       })
@@ -74,13 +81,14 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
     const result = await response.json()
     if (result.success) {
       alert(action === 'approved' ? '审批通过' : '审批拒绝')
-      window.location.href = '/approval'
+      router.push('/approval')
+      router.refresh()
     } else {
       alert('操作失败: ' + result.error)
     }
   }
 
-  if (!request) {
+  if (loading) {
     return (
       <div className="p-4">
         <div className="flex items-center justify-center py-20">
@@ -90,28 +98,36 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
     )
   }
 
-  const statusColors = {
+  if (!request) {
+    return (
+      <div className="p-4">
+        <p className="text-gray-500 text-center">未找到审批请求</p>
+      </div>
+    )
+  }
+
+  const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-600',
     approved: 'bg-green-100 text-green-600',
     rejected: 'bg-red-100 text-red-600',
     cancelled: 'bg-gray-100 text-gray-600'
   }
 
-  const statusLabels = {
+  const statusLabels: Record<string, string> = {
     pending: '待审批',
     approved: '已通过',
     rejected: '已拒绝',
     cancelled: '已取消'
   }
 
-  const typeLabels = {
+  const typeLabels: Record<string, string> = {
     leave: '请假',
     overtime: '加班',
     business_trip: '出差',
     other: '其他'
   }
 
-  const stepStatusColors = {
+  const stepStatusColors: Record<string, string> = {
     pending: 'bg-gray-200',
     approved: 'bg-green-500',
     rejected: 'bg-red-500'
@@ -123,7 +139,8 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,15 +153,15 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
       <div className="card">
         <div className="flex items-start justify-between mb-4">
           <h2 className="text-lg font-semibold">{request.title}</h2>
-          <span className={`status-badge ${statusColors[request.status as keyof typeof statusColors]}`}>
-            {statusLabels[request.status as keyof typeof statusLabels]}
+          <span className={`status-badge ${statusColors[request.status] || 'bg-gray-100 text-gray-600'}`}>
+            {statusLabels[request.status] || request.status}
           </span>
         </div>
 
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-500">类型</span>
-            <span>{typeLabels[request.type as keyof typeof typeLabels]}</span>
+            <span>{typeLabels[request.type] || request.type}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">时间</span>
@@ -165,7 +182,7 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
           {steps.map((step, index) => (
             <div key={step.id} className="flex gap-4">
               <div className="flex flex-col items-center">
-                <div className={`w-3 h-3 rounded-full ${stepStatusColors[step.status as keyof typeof stepStatusColors]}`} />
+                <div className={`w-3 h-3 rounded-full ${stepStatusColors[step.status] || 'bg-gray-200'}`} />
                 {index < steps.length - 1 && (
                   <div className="w-0.5 h-full bg-gray-200 mt-2" />
                 )}
@@ -210,12 +227,14 @@ export default function ApprovalDetailPage({ params }: { params: { id: string } 
           />
           <div className="flex gap-3">
             <button
+              type="button"
               onClick={() => handleApprove('rejected')}
               className="flex-1 btn btn-secondary py-3"
             >
               拒绝
             </button>
             <button
+              type="button"
               onClick={() => handleApprove('approved')}
               className="flex-1 btn btn-primary py-3"
             >

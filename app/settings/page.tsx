@@ -1,6 +1,9 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
+
 export default function SettingsPage() {
+  const router = useRouter()
   const settings = [
     {
       id: 'notification',
@@ -48,7 +51,8 @@ export default function SettingsPage() {
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
         <button 
-          onClick={() => window.history.back()}
+          type="button"
+          onClick={() => router.back()}
           className="icon-btn bg-gray-100"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,6 +67,7 @@ export default function SettingsPage() {
         {settings.map((setting) => (
           <button
             key={setting.id}
+            type="button"
             className="w-full card flex items-center gap-4 hover:bg-gray-50 transition-colors"
           >
             <div className="icon-btn bg-blue-50 text-blue-500">
