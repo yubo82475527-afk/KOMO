@@ -1,0 +1,204 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "back": "Back",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "success": "Success",
+    "error": "Error",
+    "processing": "Processing...",
+    "noData": "No data",
+    "login": "Login",
+    "logout": "Logout",
+    "register": "Register",
+    "unknownError": "Unknown error",
+    "networkError": "Network error"
+  },
+  "nav": {
+    "home": "Home",
+    "approval": "Approval",
+    "schedule": "Schedule",
+    "checkin": "Check-in",
+    "profile": "Profile"
+  },
+  "home": {
+    "title": "OA System",
+    "loginToView": "Login to view",
+    "employee": "Employee",
+    "todaySchedule": "Today's Schedule",
+    "noSchedule": "No schedule information",
+    "pendingApproval": "Pending Approval",
+    "waitingForYou": "Waiting for your review",
+    "announcements": "Announcements",
+    "viewAll": "View All"
+  },
+  "quickActions": {
+    "checkin": "Check-in",
+    "leave": "Leave",
+    "schedule": "Schedule",
+    "employees": "Employees"
+  },
+  "login": {
+    "title": "Login to OA System",
+    "register": "Register Account",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "hasAccount": "Already have an account? Login",
+    "noAccount": "Don't have an account? Register",
+    "backHome": "Back to Home"
+  },
+  "checkin": {
+    "title": "Check-in",
+    "checkedIn": "Checked In",
+    "checkedOut": "Checked Out",
+    "notCheckedIn": "Not Checked In",
+    "statusWorking": "Status: Working",
+    "statusCompleted": "Today's check-in completed",
+    "statusPleaseCheckin": "Please click the button below to check in",
+    "checkIn": "Check In",
+    "checkOut": "Check Out",
+    "checking": "Checking in...",
+    "checkingOut": "Checking out...",
+    "checkInSuccess": "Check-in successful",
+    "checkOutSuccess": "Check-out successful",
+    "photoCheckin": "Photo Check-in",
+    "retakePhoto": "Retake Photo",
+    "photoPreview": "Photo Preview",
+    "todayRecords": "Today's Records",
+    "noRecords": "No check-in records",
+    "status": {
+      "valid": "Valid",
+      "invalid": "Invalid",
+      "late": "Late",
+      "early": "Early Leave"
+    }
+  },
+  "approval": {
+    "title": "Approval",
+    "initiate": "New Request",
+    "pending": "Pending",
+    "initiated": "My Requests",
+    "noPending": "No pending approvals",
+    "noInitiated": "No requests submitted",
+    "status": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "types": {
+      "leave": "Leave",
+      "overtime": "Overtime",
+      "businessTrip": "Business Trip",
+      "other": "Other"
+    }
+  },
+  "approvalInitiate": {
+    "title": "New Approval Request",
+    "type": "Request Type",
+    "titleField": "Title",
+    "titlePlaceholder": "Enter request title",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "remark": "Remark",
+    "remarkPlaceholder": "Enter remarks (optional)",
+    "submit": "Submit Request",
+    "submitting": "Submitting...",
+    "submitSuccess": "Request submitted successfully",
+    "submitFailed": "Submission failed",
+    "noApprover": "No approver found, please set up admin first"
+  },
+  "approvalDetail": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "comment": "Comment",
+    "commentPlaceholder": "Enter comment (optional)",
+    "approveSuccess": "Approved successfully",
+    "rejectSuccess": "Rejected",
+    "nextStep": "Moved to next approval step",
+    "applicant": "Applicant",
+    "applyTime": "Apply Time",
+    "approvalSteps": "Approval Steps"
+  },
+  "schedule": {
+    "title": "Schedule",
+    "mySchedule": "My Schedule",
+    "calendar": "Calendar",
+    "stats": "Work Hours",
+    "noSchedule": "No schedule information",
+    "shiftTypes": {
+      "morning": "M",
+      "afternoon": "A",
+      "evening": "E",
+      "off": "Off"
+    },
+    "weekdays": {
+      "sun": "Sun",
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal Info",
+    "name": "Name",
+    "email": "Email",
+    "department": "Department",
+    "position": "Position",
+    "phone": "Phone",
+    "settings": "Settings",
+    "language": "Language",
+    "notifications": "Notifications",
+    "about": "About",
+    "version": "Version"
+  },
+  "employees": {
+    "title": "Employees",
+    "search": "Search employees",
+    "noEmployees": "No employees found",
+    "admin": "Admin"
+  },
+  "admin": {
+    "title": "Admin Panel",
+    "approvalFlow": "Approval Flow",
+    "scheduleImport": "Import Schedule",
+    "scheduleList": "Schedule List",
+    "noPermission": "No permission to access"
+  },
+  "approvalFlow": {
+    "title": "Approval Flow Configuration",
+    "addFlow": "Add Flow",
+    "flowName": "Flow Name",
+    "requestType": "Request Type",
+    "isActive": "Active",
+    "steps": "Approval Steps",
+    "stepName": "Step Name",
+    "approverType": "Approver Type",
+    "approverTypes": {
+      "admin": "Admin",
+      "specificUser": "Specific User"
+    },
+    "selectApprover": "Select Approver",
+    "addStep": "Add Step",
+    "saveSuccess": "Saved successfully",
+    "deleteConfirm": "Are you sure you want to delete this approval flow?"
+  },
+  "errors": {
+    "unauthorized": "Please login first",
+    "forbidden": "Access denied",
+    "notFound": "Page not found",
+    "serverError": "Server error",
+    "invalidResponse": "Invalid server response, please check environment variables",
+    "missingFields": "Please fill in all required fields",
+    "noPendingStep": "No pending approval step found"
+  }
+}

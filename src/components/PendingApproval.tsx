@@ -1,10 +1,15 @@
+'use client'
+
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 interface PendingApprovalProps {
   count: number
 }
 
 export default function PendingApproval({ count }: PendingApprovalProps) {
+  const t = useTranslations()
+  
   if (count === 0) return null
   
   return (
@@ -18,8 +23,8 @@ export default function PendingApproval({ count }: PendingApprovalProps) {
               </svg>
             </div>
             <div>
-              <p className="font-medium">待审批</p>
-              <p className="text-sm text-gray-500">等待您处理的申请</p>
+              <p className="font-medium">{t('home.pendingApproval')}</p>
+              <p className="text-sm text-gray-500">{t('home.waitingForYou')}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 interface User {
   id: string
@@ -17,6 +18,7 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user }: UserCardProps) {
+  const t = useTranslations()
   const router = useRouter()
 
   const handleLogin = async () => {
@@ -39,12 +41,12 @@ export default function UserCard({ user }: UserCardProps) {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="text-gray-400 mb-2">登录以查看</p>
+            <p className="text-gray-400 mb-2">{t('home.loginToView')}</p>
             <button 
               onClick={handleLogin}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition"
             >
-              登录
+              {t('common.login')}
             </button>
           </div>
         </div>
@@ -64,13 +66,13 @@ export default function UserCard({ user }: UserCardProps) {
         </div>
         <div className="flex-1">
           <h2 className="text-lg font-semibold">{user.name}</h2>
-          <p className="text-sm text-gray-500">{user.position || '员工'}</p>
+          <p className="text-sm text-gray-500">{user.position || t('home.employee')}</p>
         </div>
         <button 
           onClick={handleLogout}
           className="px-3 py-1.5 text-sm text-gray-500 hover:text-red-500 transition"
         >
-          登出
+          {t('common.logout')}
         </button>
       </div>
     </div>

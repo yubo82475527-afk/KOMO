@@ -1,3 +1,7 @@
+'use client'
+
+import { useTranslations, useLocale } from 'next-intl'
+
 interface Shift {
   id: string
   name: string
@@ -20,15 +24,31 @@ interface TodayScheduleProps {
 }
 
 export default function TodaySchedule({ schedule }: TodayScheduleProps) {
+  const t = useTranslations()
+  const locale = useLocale()
   const today = new Date()
-  const dateStr = `${today.getMonth() + 1}月${today.getDate()}日`
-  const weekday = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'][today.getDay()]
+  const dateStr = locale === 'zh' 
+    ? `${today.getMonth() + 1}月${today.getDate()}日`
+    : today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  const weekday = locale === 'zh'
+    ? t('schedule.weekdays.' + ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][today.getDay()])
+    : t('schedule.weekdays.' + ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][today.getDay()])
+
+  const getShiftTypeLabel = (type: string) => {
+    switch (type) {
+      case 'morning': return t('schedule.shiftTypes.morning')
+      case 'afternoon': return t('schedule.shiftTypes.afternoon')
+      case 'evening': return t('schedule.shiftTypes.evening')
+      case 'off': return t('schedule.shiftTypes.off')
+      default: return type
+    }
+  }
 
   if (!schedule) {
     return (
       <div className="card">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">今日班次</h3>
+          <h3 className="font-semibold">{t('home.todaySchedule')}</h3>
           <span className="text-sm text-gray-500">{dateStr} {weekday}</span>
         </div>
         <div className="flex items-center justify-center py-8 text-gray-400">
@@ -36,7 +56,7 @@ export default function TodaySchedule({ schedule }: TodayScheduleProps) {
             <svg className="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p>暂无排班信息</p>
+            <p>{t('home.noSchedule')}</p>
           </div>
         </div>
       </div>
@@ -46,7 +66,7 @@ export default function TodaySchedule({ schedule }: TodayScheduleProps) {
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold">今日班次</h3>
+        <h3 className="font-semibold">{t('home.todaySchedule')}</h3>
         <span className="text-sm text-gray-500">{dateStr} {weekday}</span>
       </div>
       <div className="flex items-center gap-4">
@@ -64,10 +84,7 @@ export default function TodaySchedule({ schedule }: TodayScheduleProps) {
                 color: schedule.shifts.color 
               }}
             >
-              {schedule.shifts.type === 'morning' && '早'}
-              {schedule.shifts.type === 'afternoon' && '中'}
-              {schedule.shifts.type === 'evening' && '晚'}
-              {schedule.shifts.type === 'off' && '休'}
+              {getShiftTypeLabel(schedule.shifts.type)}
             </span>
           </div>
           <p className="text-sm text-gray-500">

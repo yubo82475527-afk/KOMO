@@ -3,8 +3,10 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 
 export default function LoginPage() {
+  const t = useTranslations()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isSignUp, setIsSignUp] = useState(false)
@@ -48,13 +50,13 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="card p-8">
           <h1 className="text-2xl font-bold text-center mb-8">
-            {isSignUp ? '注册账号' : '登录OA系统'}
+            {isSignUp ? t('login.register') : t('login.title')}
           </h1>
 
           <form onSubmit={handleAuth} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                邮箱
+                {t('login.email')}
               </label>
               <input
                 type="email"
@@ -67,7 +69,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                密码
+                {t('login.password')}
               </label>
               <input
                 type="password"
@@ -89,7 +91,7 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
-              {loading ? '处理中...' : (isSignUp ? '注册' : '登录')}
+              {loading ? t('common.processing') : (isSignUp ? t('login.registerButton') : t('login.loginButton'))}
             </button>
           </form>
 
@@ -101,7 +103,7 @@ export default function LoginPage() {
               }}
               className="text-blue-500 hover:text-blue-600 text-sm"
             >
-              {isSignUp ? '已有账号？去登录' : '没有账号？去注册'}
+              {isSignUp ? t('login.hasAccount') : t('login.noAccount')}
             </button>
           </div>
 
@@ -110,7 +112,7 @@ export default function LoginPage() {
               onClick={() => router.push('/')}
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
-              返回首页
+              {t('login.backHome')}
             </button>
           </div>
         </div>

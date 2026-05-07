@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useTranslations, useLocale } from 'next-intl'
 
 interface CheckinRecord {
   id: string
@@ -11,6 +12,8 @@ interface CheckinRecord {
 }
 
 export default function CheckinPage() {
+  const t = useTranslations()
+  const locale = useLocale()
   const [currentUser, setCurrentUser] = useState<any>(null)
   const [checkinStatus, setCheckinStatus] = useState<'not_checkin' | 'checked_in' | 'checked_out'>('not_checkin')
   const [todayCheckins, setTodayCheckins] = useState<CheckinRecord[]>([])
@@ -97,22 +100,22 @@ export default function CheckinPage() {
       if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text()
         console.error('Non-JSON response:', text.substring(0, 500))
-        alert('服务器返回了无效响应，请检查 Supabase 环境变量配置')
+        alert(t('errors.invalidResponse'))
         setIsChecking(false)
         return
       }
 
       const result = await response.json()
       if (result.success) {
-        alert(type === 'checkin' ? '打卡成功' : '签退成功')
+        alert(type === 'checkin' ? t('checkin.checkInSuccess') : t('checkin.checkOutSuccess'))
         setPhoto(null)
         await fetchData()
       } else {
-        alert('操作失败: ' + (result.error || '未知错误'))
+        alert(t('common.error') + ': ' + (result.error || t('common.unknownError')))
       }
     } catch (err) {
       console.error('Checkin error:', err)
-      alert('操作失败，请重试')
+      alert(t('common.error') + ', ' + t('common.networkError'))
     } finally {
       setIsChecking(false)
     }
@@ -136,14 +139,16 @@ export default function CheckinPage() {
     input.click()
   }
 
-  const dateStr = `${currentTime.getMonth() + 1}月${currentTime.getDate()}日`
-  const timeStr = currentTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const dateStr = locale === 'zh' 
+    ? `${currentTime.getMonth() + 1}月${currentTime.getDate()}日`
+    : currentTime.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+  const timeStr = currentTime.toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
 
   const statusLabels: Record<string, string> = {
-    valid: '正常',
-    invalid: '无效',
-    late: '迟到',
-    early: '早退'
+    valid: t('checkin.status.valid'),
+    invalid: t('checkin.status.invalid'),
+    late: t('checkin.status.late'),
+    early: t('checkin.status.early')
   }
 
   const statusColors: Record<string, string> = {
@@ -166,7 +171,7 @@ export default function CheckinPage() {
   return (
     <div className="p-4 pb-24">
       <header className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold">打卡</h1>
+        <h1 className="text-xl font-bold">{t('checkin.title')}</h1>
         <span className="text-sm text-gray-500">{dateStr}</span>
       </header>
 
@@ -186,10 +191,10 @@ export default function CheckinPage() {
         </div>
 
         <h2 className="text-2xl font-bold mb-1">
-          {checkinStatus === 'checked_in' ? '已打卡' : checkinStatus === 'checked_out' ? '已签退' : '未打卡'}
+          {checkinStatus === 'checked_in' ? t('checkin.checkedIn') : checkinStatus === 'checked_out' ? t('checkin.checkedOut') : t('checkin.notCheckedIn')}
         </h2>
         <p className="text-gray-500 text-sm">
-          {checkinStatus === 'checked_in' ? '当前状态: 上班中' : checkinStatus === 'checked_out' ? '今日打卡已完成' : '请点击下方按钮打卡'}
+          {checkinStatus === 'checked_in' ? t('checkin.statusWorking') : checkinStatus === 'checked_out' ? t('checkin.statusCompleted') : t('checkin.statusPleaseCheckin')}
         </p>
         <p className="text-3xl font-bold text-gray-800 mt-4">{timeStr}</p>
       </div>
@@ -209,7 +214,7 @@ export default function CheckinPage() {
               <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>{isChecking ? '打卡中...' : '上班打卡'}</span>
+              <span>{isChecking ? t('checkin.checking') : t('checkin.checkIn')}</span>
             </button>
             <button
               onClick={() => handleCheckin('checkout')}
@@ -223,7 +228,7 @@ export default function CheckinPage() {
               <svg className="w-6 h-6 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 012-2h10a2 2 0 012 2M5 12v-6a2 2 0 012-2h10a2 2 0 012 2v6" />
               </svg>
-              <span>{isChecking ? '签退中...' : '下班签退'}</span>
+              <span>{isChecking ? t('checkin.checkingOut') : t('checkin.checkOut')}</span>
             </button>
           </div>
 
@@ -235,7 +240,7 @@ export default function CheckinPage() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              {photo ? '重新拍照' : '拍照打卡'}
+              {photo ? t('checkin.retakePhoto') : t('checkin.photoCheckin')}
             </button>
           )}
         </div>
@@ -243,10 +248,10 @@ export default function CheckinPage() {
 
       {photo && (
         <div className="card mt-4">
-          <h3 className="font-semibold mb-3">拍照预览</h3>
+          <h3 className="font-semibold mb-3">{t('checkin.photoPreview')}</h3>
           <img
             src={photo}
-            alt="打卡照片"
+            alt="Check-in photo"
             className="w-full rounded-xl"
             style={{ maxHeight: '200px', objectFit: 'cover' }}
           />
@@ -254,7 +259,7 @@ export default function CheckinPage() {
       )}
 
       <div className="card mt-4">
-        <h3 className="font-semibold mb-3">今日记录</h3>
+        <h3 className="font-semibold mb-3">{t('checkin.todayRecords')}</h3>
         {todayCheckins.length > 0 ? (
           <div className="space-y-3">
             {todayCheckins.map((record) => (
@@ -275,10 +280,10 @@ export default function CheckinPage() {
                   </div>
                   <div>
                     <p className="font-medium">
-                      {record.type === 'checkin' ? '上班打卡' : '下班签退'}
+                      {record.type === 'checkin' ? t('checkin.checkIn') : t('checkin.checkOut')}
                     </p>
                     <p className="text-sm text-gray-500">
-                      {new Date(record.timestamp).toLocaleTimeString('zh-CN')}
+                      {new Date(record.timestamp).toLocaleTimeString(locale === 'zh' ? 'zh-CN' : 'en-US')}
                     </p>
                   </div>
                 </div>
@@ -293,7 +298,7 @@ export default function CheckinPage() {
             <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p>暂无打卡记录</p>
+            <p>{t('checkin.noRecords')}</p>
           </div>
         )}
       </div>

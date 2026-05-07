@@ -1,0 +1,204 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "submit": "提交",
+    "cancel": "取消",
+    "confirm": "确认",
+    "back": "返回",
+    "save": "保存",
+    "delete": "删除",
+    "edit": "编辑",
+    "success": "操作成功",
+    "error": "操作失败",
+    "processing": "处理中...",
+    "noData": "暂无数据",
+    "login": "登录",
+    "logout": "登出",
+    "register": "注册",
+    "unknownError": "未知错误",
+    "networkError": "网络错误"
+  },
+  "nav": {
+    "home": "首页",
+    "approval": "审批",
+    "schedule": "排班",
+    "checkin": "打卡",
+    "profile": "我的"
+  },
+  "home": {
+    "title": "OA系统",
+    "loginToView": "登录以查看",
+    "employee": "员工",
+    "todaySchedule": "今日班次",
+    "noSchedule": "暂无排班信息",
+    "pendingApproval": "待审批",
+    "waitingForYou": "等待您处理的申请",
+    "announcements": "公告",
+    "viewAll": "查看全部"
+  },
+  "quickActions": {
+    "checkin": "打卡",
+    "leave": "请假",
+    "schedule": "排班",
+    "employees": "员工"
+  },
+  "login": {
+    "title": "登录OA系统",
+    "register": "注册账号",
+    "email": "邮箱",
+    "password": "密码",
+    "loginButton": "登录",
+    "registerButton": "注册",
+    "hasAccount": "已有账号？去登录",
+    "noAccount": "没有账号？去注册",
+    "backHome": "返回首页"
+  },
+  "checkin": {
+    "title": "打卡",
+    "checkedIn": "已打卡",
+    "checkedOut": "已签退",
+    "notCheckedIn": "未打卡",
+    "statusWorking": "当前状态: 上班中",
+    "statusCompleted": "今日打卡已完成",
+    "statusPleaseCheckin": "请点击下方按钮打卡",
+    "checkIn": "上班打卡",
+    "checkOut": "下班签退",
+    "checking": "打卡中...",
+    "checkingOut": "签退中...",
+    "checkInSuccess": "打卡成功",
+    "checkOutSuccess": "签退成功",
+    "photoCheckin": "拍照打卡",
+    "retakePhoto": "重新拍照",
+    "photoPreview": "拍照预览",
+    "todayRecords": "今日记录",
+    "noRecords": "暂无打卡记录",
+    "status": {
+      "valid": "正常",
+      "invalid": "无效",
+      "late": "迟到",
+      "early": "早退"
+    }
+  },
+  "approval": {
+    "title": "审批",
+    "initiate": "发起审批",
+    "pending": "待审批",
+    "initiated": "我发起的",
+    "noPending": "暂无待审批事项",
+    "noInitiated": "暂无发起的申请",
+    "status": {
+      "pending": "待审批",
+      "approved": "已通过",
+      "rejected": "已拒绝"
+    },
+    "types": {
+      "leave": "请假",
+      "overtime": "加班",
+      "businessTrip": "出差",
+      "other": "其他"
+    }
+  },
+  "approvalInitiate": {
+    "title": "发起审批",
+    "type": "申请类型",
+    "titleField": "标题",
+    "titlePlaceholder": "请输入申请标题",
+    "startDate": "开始日期",
+    "endDate": "结束日期",
+    "remark": "备注",
+    "remarkPlaceholder": "请输入备注信息（可选）",
+    "submit": "提交申请",
+    "submitting": "提交中...",
+    "submitSuccess": "申请提交成功",
+    "submitFailed": "提交失败",
+    "noApprover": "没有找到审批人，请先设置管理员"
+  },
+  "approvalDetail": {
+    "approve": "通过",
+    "reject": "拒绝",
+    "comment": "审批意见",
+    "commentPlaceholder": "请输入审批意见（可选）",
+    "approveSuccess": "审批成功",
+    "rejectSuccess": "已拒绝",
+    "nextStep": "已进入下一审批步骤",
+    "applicant": "申请人",
+    "applyTime": "申请时间",
+    "approvalSteps": "审批流程"
+  },
+  "schedule": {
+    "title": "排班",
+    "mySchedule": "我的排班",
+    "calendar": "排班日历",
+    "stats": "工时统计",
+    "noSchedule": "暂无排班信息",
+    "shiftTypes": {
+      "morning": "早",
+      "afternoon": "中",
+      "evening": "晚",
+      "off": "休"
+    },
+    "weekdays": {
+      "sun": "周日",
+      "mon": "周一",
+      "tue": "周二",
+      "wed": "周三",
+      "thu": "周四",
+      "fri": "周五",
+      "sat": "周六"
+    }
+  },
+  "profile": {
+    "title": "我的",
+    "personalInfo": "个人信息",
+    "name": "姓名",
+    "email": "邮箱",
+    "department": "部门",
+    "position": "职位",
+    "phone": "电话",
+    "settings": "设置",
+    "language": "语言",
+    "notifications": "通知设置",
+    "about": "关于",
+    "version": "版本"
+  },
+  "employees": {
+    "title": "员工列表",
+    "search": "搜索员工",
+    "noEmployees": "暂无员工信息",
+    "admin": "管理员"
+  },
+  "admin": {
+    "title": "管理后台",
+    "approvalFlow": "审批流配置",
+    "scheduleImport": "排班导入",
+    "scheduleList": "排班列表",
+    "noPermission": "无权限访问"
+  },
+  "approvalFlow": {
+    "title": "审批流配置",
+    "addFlow": "添加审批流",
+    "flowName": "审批流名称",
+    "requestType": "申请类型",
+    "isActive": "是否启用",
+    "steps": "审批步骤",
+    "stepName": "步骤名称",
+    "approverType": "审批人类型",
+    "approverTypes": {
+      "admin": "管理员",
+      "specificUser": "指定用户"
+    },
+    "selectApprover": "选择审批人",
+    "addStep": "添加步骤",
+    "saveSuccess": "保存成功",
+    "deleteConfirm": "确定要删除此审批流吗？"
+  },
+  "errors": {
+    "unauthorized": "请先登录",
+    "forbidden": "无权限访问",
+    "notFound": "页面不存在",
+    "serverError": "服务器错误",
+    "invalidResponse": "服务器返回了无效响应，请检查环境变量配置",
+    "missingFields": "请填写所有必填项",
+    "noPendingStep": "没有找到待审批的步骤"
+  }
+}
