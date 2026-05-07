@@ -12,40 +12,64 @@ export default function ApprovalPage() {
   const [myRequests, setMyRequests] = useState<any[]>([])
   const [pendingRequests, setPendingRequests] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
-      const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        setLoading(false)
-        return
-      }
+      try {
+        const supabase = createClient()
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
+        
+        if (userError) {
+          console.error('getUser error:', userError)
+        }
+        
+        if (!user) {
+          setLoading(false)
+          return
+        }
 
-      const { data: myData } = await supabase
-        .from('approval_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5)
-      setMyRequests(myData || [])
-
-      const { data: steps } = await supabase
-        .from('approval_steps')
-        .select('request_id')
-        .eq('approver_id', user.id)
-        .eq('status', 'pending')
-
-      if (steps && steps.length > 0) {
-        const requestIds = (steps as ApprovalStep[]).map((s) => s.request_id)
-        const { data: pendingData } = await supabase
+        const { data: myData, error: myError } = await supabase
           .from('approval_requests')
           .select('*')
-          .in('id', requestIds)
-        setPendingRequests(pendingData || [])
-      }
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+        
+        if (myError) {
+          console.error('myData error:', myError)
+        }
+        setMyRequests(myData || [])
 
-      setLoading(false)
+        const { data: steps, error: stepsError } = await supabase
+          .from('approval_steps')
+          .select('request_id')
+          .eq('approver_id', user.id)
+          .eq('status', 'pending')
+
+        if (stepsError) {
+          console.error('steps error:', stepsError)
+        }
+
+        if (steps && steps.length > 0) {
+          const requestIds = (steps as ApprovalStep[]).map((s) => s.request_id)
+          const { data: pendingData, error: pendingError } = await supabase
+            .from('approval_requests')
+            .select('*')
+            .in('id', requestIds)
+          
+          if (pendingError) {
+            console.error('pendingData error:', pendingError)
+          }
+          setPendingRequests(pendingData || [])
+        }
+
+        setLoading(false)
+      } catch (err) {
+        console.error('Approval page error:', err)
+        setError('加载失败，请刷新页面重试')
+        setLoading(false)
+      }
     }
 
     fetchData()
@@ -77,6 +101,19 @@ export default function ApprovalPage() {
       <div className="p-4 pb-24">
         <div className="flex items-center justify-center py-20">
           <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 pb-24">
+        <div className="card text-center py-12">
+          <p className="text-red-500">{error}</p>
+          <button onClick={() => window.location.reload()} className="btn btn-primary mt-4">
+            刷新页面
+          </button>
         </div>
       </div>
     )
