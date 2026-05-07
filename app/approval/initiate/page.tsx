@@ -15,13 +15,6 @@ export default function InitiateApprovalPage() {
   })
   const [submiting, setSubmiting] = useState(false)
 
-  const types = [
-    { value: 'leave', label: '请假' },
-    { value: 'overtime', label: '加班' },
-    { value: 'business_trip', label: '出差' },
-    { value: 'other', label: '其他' }
-  ]
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmiting(true)
@@ -64,6 +57,13 @@ export default function InitiateApprovalPage() {
     }
   }
 
+  const types = [
+    { value: 'leave', label: '请假' },
+    { value: 'overtime', label: '加班' },
+    { value: 'business_trip', label: '出差' },
+    { value: 'other', label: '其他' }
+  ]
+
   return (
     <div className="p-4 pb-24">
       <header className="flex items-center gap-4 mb-6">
@@ -87,7 +87,7 @@ export default function InitiateApprovalPage() {
               <button
                 key={type.value}
                 type="button"
-                onClick={() => setFormData({ ...formData, type: type.value as typeof formData.type })}
+                onClick={() => setFormData({ ...formData, type: type.value as const })}
                 className={`py-2 rounded-xl text-sm font-medium transition-colors ${
                   formData.type === type.value
                     ? 'bg-blue-500 text-white'
