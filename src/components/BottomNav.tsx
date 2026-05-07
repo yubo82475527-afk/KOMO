@@ -63,14 +63,14 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200 z-50">
-      <div className="flex items-center justify-around py-2">
+      <div className="flex items-stretch py-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href || pathname?.startsWith(`${item.href}/`)
           return (
             <Link
               key={item.id}
               href={item.href}
-              className={`flex flex-col items-center gap-1 px-3 py-2 transition-colors ${
+              className={`flex flex-1 flex-col items-center justify-center gap-1 py-2 transition-colors ${
                 isActive ? 'text-blue-500' : 'text-gray-400'
               }`}
             >
