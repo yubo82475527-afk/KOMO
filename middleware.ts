@@ -1,4 +1,3 @@
-import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { locales, defaultLocale, type Locale } from './src/i18n'
 
@@ -17,47 +16,10 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  })
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (supabaseUrl && supabaseAnonKey) {
-    const supabase = createServerClient(
-      supabaseUrl,
-      supabaseAnonKey,
-      {
-        cookies: {
-          getAll() {
-            return request.cookies.getAll()
-          },
-          setAll(cookiesToSet) {
-            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-            supabaseResponse = NextResponse.next({
-              request,
-            })
-            cookiesToSet.forEach(({ name, value, options }) =>
-              supabaseResponse.cookies.set(name, value, options)
-            )
-          },
-        },
-      }
-    )
-
-    const { data: { session } } = await supabase.auth.getSession()
-    
-    if (session && request.nextUrl.pathname === '/login') {
-      const response = NextResponse.redirect(new URL('/', request.url))
-      response.cookies.set('locale', locale)
-      return response
-    }
-  }
-
-  supabaseResponse.cookies.set('locale', locale)
+  const response = NextResponse.next()
+  response.cookies.set('locale', locale, { path: '/' })
   
-  return supabaseResponse
+  return response
 }
 
 export const config = {
